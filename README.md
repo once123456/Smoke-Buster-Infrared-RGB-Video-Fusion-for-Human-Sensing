@@ -1,7 +1,7 @@
 # Smoke Buster: Infrared-RGB Video Fusion for Human Sensing  
 ![Python](https://img.shields.io/badge/Python-100%25-blue?logo=python) [![Stars](https://img.shields.io/github/stars/once123456/Smoke-Buster-Infrared-RGB-Video-Fusion-for-Human-Sensing)](https://github.com/once123456/Smoke-Buster-Infrared-RGB-Video-Fusion-for-Human-Sensing/stargazers) [^1]
 
-多模态视频融合系统，通过红外与RGB数据增强烟雾环境下的人类感知能力。当前版本包含16个提交记录和2位贡献者 [^2][^3]。
+多模态视频融合系统，通过红外与RGB数据增强烟雾环境下的人类感知能力。
 
 ---
 
