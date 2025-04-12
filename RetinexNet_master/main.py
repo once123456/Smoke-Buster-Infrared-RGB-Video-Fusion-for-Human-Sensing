@@ -2,12 +2,11 @@ from __future__ import print_function
 import os
 import argparse
 from glob import glob
-
 from PIL import Image
 import tensorflow as tf
-
-from model import lowlight_enhance
-from utils import *
+import numpy as np
+from model import LowLightEnhance
+from utils import load_images
 
 parser = argparse.ArgumentParser(description='')
 
@@ -56,8 +55,6 @@ def lowlight_train(lowlight_enhance):
         train_high_data.append(high_im)
 
     eval_low_data = []
-    eval_high_data = []
-
     eval_low_data_name = glob('./data/eval/low/*.*')
 
     for idx in range(len(eval_low_data_name)):
@@ -65,53 +62,47 @@ def lowlight_train(lowlight_enhance):
         eval_low_data.append(eval_low_im)
 
     lowlight_enhance.train(train_low_data, train_high_data, eval_low_data, batch_size=args.batch_size, patch_size=args.patch_size, epoch=args.epoch, lr=lr, sample_dir=args.sample_dir, ckpt_dir=os.path.join(args.ckpt_dir, 'Decom'), eval_every_epoch=args.eval_every_epoch, train_phase="Decom")
-
     lowlight_enhance.train(train_low_data, train_high_data, eval_low_data, batch_size=args.batch_size, patch_size=args.patch_size, epoch=args.epoch, lr=lr, sample_dir=args.sample_dir, ckpt_dir=os.path.join(args.ckpt_dir, 'Relight'), eval_every_epoch=args.eval_every_epoch, train_phase="Relight")
 
-
 def lowlight_test(lowlight_enhance):
-    if args.test_dir == None:
+    if args.test_dir is None:
         print("[!] please provide --test_dir")
-        exit(0)
+        return
 
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
     test_low_data_name = glob(os.path.join(args.test_dir) + '/*.*')
     test_low_data = []
-    test_high_data = []
     for idx in range(len(test_low_data_name)):
         test_low_im = load_images(test_low_data_name[idx])
         test_low_data.append(test_low_im)
 
-    lowlight_enhance.test(test_low_data, test_high_data, test_low_data_name, save_dir=args.save_dir, decom_flag=args.decom)
+    lowlight_enhance.test(test_low_data, test_low_data_name, save_dir=args.save_dir, decom_flag=args.decom)
 
-
-def main(_):
+def main():
     if args.use_gpu:
         print("[*] GPU\n")
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_idx
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_mem)
-        with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-            model = lowlight_enhance(sess)
-            if args.phase == 'train':
-                lowlight_train(model)
-            elif args.phase == 'test':
-                lowlight_test(model)
-            else:
-                print('[!] Unknown phase')
-                exit(0)
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpus[0],
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=args.gpu_mem * 1024)])
+            except RuntimeError as e:
+                print(e)
     else:
         print("[*] CPU\n")
-        with tf.Session() as sess:
-            model = lowlight_enhance(sess)
-            if args.phase == 'train':
-                lowlight_train(model)
-            elif args.phase == 'test':
-                lowlight_test(model)
-            else:
-                print('[!] Unknown phase')
-                exit(0)
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+    model = LowLightEnhance()
+    if args.phase == 'train':
+        lowlight_train(model)
+    elif args.phase == 'test':
+        lowlight_test(model)
+    else:
+        print('[!] Unknown phase')
 
 if __name__ == '__main__':
-    tf.app.run()
+    main()

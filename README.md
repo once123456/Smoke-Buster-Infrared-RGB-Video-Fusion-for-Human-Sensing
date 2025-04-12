@@ -11,6 +11,7 @@
 2. **`recognition.py`**：进行人体识别，使用预训练的 YOLOv5 模型，并结合卡尔曼滤波器对人体进行追踪。
 3. **`image_haze_removel.py`**：使用预训练的 LightDehaze_Net 模型对图像进行去烟处理。
 4. **`process_video.py`**：主程序文件，读取可见光和红外视频，依次调用图像融合、去烟和人体识别功能，最后将处理后的帧写入输出视频。
+5. **`dehaze.py`**:暗通道先验的去烟算法
 
 ## 环境要求
 - Python 3.9 及以上版本
@@ -19,6 +20,9 @@
   - `cv2`（OpenCV）
   - `numpy`
   - `PIL`（Pillow==9.5.0）
+  - tensorflow >= 1.50
+  - pandas
+  - 
 
 ## 安装依赖
 在项目根目录下，使用以下命令安装所需的依赖库：
@@ -69,6 +73,15 @@ pip install torch torchvision opencv-python numpy pillow
 4. 逐帧读取视频，对每一帧进行图像融合、去烟和人体识别处理。
 5. 将处理后的帧写入输出视频文件。
 6. 释放视频捕获和写入对象。
+7. TransmissionRefine(im, et)对估计的透射率图像进行细化。
+
+### `dehaze.py`
+各主要函数的作用
+1. DarkChannel(im, sz)计算输入图像的暗通道图像
+2. AtmLight(im, dark)估计大气光值 A。
+3. TransmissionEstimate(im, A, sz)估计透射率 t。
+4. Guidedfilter(im, p, r, eps)实现导向滤波，用于细化透射率图像。
+5. Recover(im, t, A, tx = 0.1)根据估计的透射率和大气光值，恢复出无雾（无烟）的图像。
 
 ## 注意事项
 - 请确保你的系统支持 CUDA，以便在 GPU 上运行去烟和人体识别模型，提高处理速度。

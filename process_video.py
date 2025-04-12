@@ -15,7 +15,7 @@ from glob import glob
 import tensorflow as tf
 
 # 导入RetinexNet相关函数和类
-from RetinexNet_master.model import lowlight_enhance
+from RetinexNet_master.model import LowLightEnhance
 from RetinexNet_master.utils import load_images, save_images
 # 打开可见光和红外视频文件
 visible_video = cv2.VideoCapture('rgb.mp4')
@@ -50,10 +50,20 @@ choice = input("请输入你的选择 (1 或 2): ")
 
 
 # 初始化RetinexNet模型
-gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
-with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-    model_retinex = lowlight_enhance(sess)
+#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        # 设置内存增长模式
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(f"设置 GPU 内存增长模式时出现错误: {e}")
 
+tf.compat.v1.disable_eager_execution()
+
+with tf.compat.v1.Session() as sess:
+    model_retinex = LowLightEnhance(sess)
     frame_count = 0
     while True:
         # 读取可见光和红外视频的帧
