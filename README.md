@@ -16,7 +16,7 @@
 ## 环境要求
 - Python 3.9 及以上版本
 - 依赖库：
-  - `torch`
+  - `torch`（torch==1.13.1）
   - `cv2`（OpenCV）
   - `numpy`
   - `PIL`（Pillow==9.5.0）
